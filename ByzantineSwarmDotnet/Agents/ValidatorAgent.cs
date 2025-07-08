@@ -186,7 +186,7 @@ public class ValidatorAgent : EnhancedSwarmAgentBase, IValidatorAgent
         }
     }
 
-    protected override async Task<bool> DetectByzantineBehaviorAsync(AgentMessage message)
+    public override async Task<bool> DetectByzantineBehaviorAsync(AgentMessage message)
     {
         var baseByzantine = await base.DetectByzantineBehaviorAsync(message);
         

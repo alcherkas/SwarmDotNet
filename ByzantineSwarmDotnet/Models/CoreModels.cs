@@ -12,14 +12,25 @@ public enum AgentRole
     Security,
     Monitoring,
     Recovery,
-    Worker
+    Worker,
+    Orchestrator,
+    PRExtractor,
+    JiraContext,
+    CodeAnalyzer,
+    RequirementMapper,
+    TestCoverage,
+    RiskAssessment,
+    IntegrationAnalyzer,
+    SummaryGenerator,
+    Learning
 }
 
 public enum AgentHierarchyLevel
 {
     Executive = 1,
-    Supervisor = 2,
-    Worker = 3
+    Coordinator = 2,
+    Supervisor = 3,
+    Worker = 4
 }
 
 public enum TaskType
