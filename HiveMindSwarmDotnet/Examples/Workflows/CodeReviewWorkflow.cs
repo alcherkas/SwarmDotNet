@@ -1,0 +1,424 @@
+using HiveMindSwarmDotnet.Console.Interfaces;
+using HiveMindSwarmDotnet.Console.Models;
+using HiveMindSwarmDotnet.Examples.SampleData;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+
+namespace HiveMindSwarmDotnet.Examples.Workflows;
+
+/// <summary>
+/// Demonstrates a complete code review workflow using the agent swarm
+/// Shows step-by-step agent coordination and communication
+/// </summary>
+public class CodeReviewWorkflow
+{
+    private readonly ISwarmOrchestrator _orchestrator;
+    private readonly ILogger<CodeReviewWorkflow> _logger;
+
+    public CodeReviewWorkflow(ISwarmOrchestrator orchestrator, ILogger<CodeReviewWorkflow> logger)
+    {
+        _orchestrator = orchestrator;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Demonstrates the complete PR analysis workflow with detailed agent coordination
+    /// </summary>
+    public async Task RunCompleteWorkflowAsync()
+    {
+        _logger.LogInformation("🚀 Starting Complete Code Review Workflow");
+        _logger.LogInformation("================================================");
+
+        try
+        {
+            // Step 1: Initialize the workflow
+            await InitializeWorkflowAsync();
+
+            // Step 2: Run the bug fix analysis workflow
+            await RunBugFixWorkflowAsync();
+
+            // Step 3: Run the feature development workflow
+            await RunFeatureWorkflowAsync();
+
+            // Step 4: Run the security review workflow
+            await RunSecurityWorkflowAsync();
+
+            _logger.LogInformation("✅ Complete workflow finished successfully!");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Workflow execution failed");
+            throw;
+        }
+    }
+
+    private async Task InitializeWorkflowAsync()
+    {
+        _logger.LogInformation("\n🔧 Step 1: Initializing Workflow");
+        _logger.LogInformation("- Setting up agent swarm");
+        _logger.LogInformation("- Preparing sample data");
+        _logger.LogInformation("- Configuring communication channels");
+        
+        await Task.Delay(1000); // Simulate initialization
+        _logger.LogInformation("✅ Workflow initialized");
+    }
+
+    /// <summary>
+    /// Demonstrates bug fix review workflow
+    /// </summary>
+    private async Task RunBugFixWorkflowAsync()
+    {
+        _logger.LogInformation("\n🐛 Step 2: Bug Fix Review Workflow");
+        _logger.LogInformation("================================================");
+
+        var bugFixTask = SamplePRData.CreateBugFixPR();
+        
+        _logger.LogInformation($"📋 Analyzing PR: {bugFixTask.Description}");
+        _logger.LogInformation($"🎯 Required Agents: {string.Join(", ", bugFixTask.RequiredRoles)}");
+
+        // Execute the task and show detailed progress
+        var result = await ExecuteTaskWithDetailedLoggingAsync(bugFixTask, "Bug Fix Analysis");
+
+        // Show workflow-specific insights
+        _logger.LogInformation("\n📊 Bug Fix Workflow Results:");
+        ShowWorkflowResults(result);
+    }
+
+    /// <summary>
+    /// Demonstrates new feature review workflow
+    /// </summary>
+    private async Task RunFeatureWorkflowAsync()
+    {
+        _logger.LogInformation("\n⭐ Step 3: New Feature Review Workflow");
+        _logger.LogInformation("================================================");
+
+        var featureTask = SamplePRData.CreateNewFeaturePR();
+        
+        _logger.LogInformation($"📋 Analyzing PR: {featureTask.Description}");
+        _logger.LogInformation($"🎯 Required Agents: {string.Join(", ", featureTask.RequiredRoles)}");
+
+        // Execute the task with coordination details
+        var result = await ExecuteTaskWithDetailedLoggingAsync(featureTask, "Feature Development Analysis");
+
+        // Show feature-specific insights
+        _logger.LogInformation("\n📊 Feature Workflow Results:");
+        ShowWorkflowResults(result);
+        
+        // Show agent coordination patterns
+        ShowAgentCoordinationInsights(result);
+    }
+
+    /// <summary>
+    /// Demonstrates security review workflow
+    /// </summary>
+    private async Task RunSecurityWorkflowAsync()
+    {
+        _logger.LogInformation("\n🔒 Step 4: Security Review Workflow");
+        _logger.LogInformation("================================================");
+
+        var securityTask = SamplePRData.CreateSecurityPR();
+        
+        _logger.LogInformation($"📋 Analyzing PR: {securityTask.Description}");
+        _logger.LogInformation($"🎯 Required Agents: {string.Join(", ", securityTask.RequiredRoles)}");
+
+        // Execute security-focused analysis
+        var result = await ExecuteTaskWithDetailedLoggingAsync(securityTask, "Security Review Analysis");
+
+        // Show security-specific insights
+        _logger.LogInformation("\n📊 Security Workflow Results:");
+        ShowWorkflowResults(result);
+        ShowSecurityInsights(result);
+    }
+
+    /// <summary>
+    /// Executes a task with detailed logging of agent coordination
+    /// </summary>
+    private async Task<SwarmResult> ExecuteTaskWithDetailedLoggingAsync(SwarmTask task, string workflowName)
+    {
+        _logger.LogInformation($"\n🔄 Executing {workflowName}...");
+        
+        var startTime = DateTime.UtcNow;
+        
+        // Simulate step-by-step agent execution
+        foreach (var role in task.RequiredRoles)
+        {
+            _logger.LogInformation($"   🤖 Activating {role} agent...");
+            await Task.Delay(500); // Simulate processing time
+        }
+
+        // Execute the actual task
+        var result = await _orchestrator.ExecuteTaskAsync(task);
+        
+        var duration = DateTime.UtcNow - startTime;
+        
+        _logger.LogInformation($"✅ {workflowName} completed in {duration.TotalSeconds:F1}s");
+        _logger.LogInformation($"   📈 Overall Confidence: {result.OverallConfidence:P}");
+        _logger.LogInformation($"   🎯 Success: {result.IsSuccessful}");
+        
+        return result;
+    }
+
+    /// <summary>
+    /// Shows detailed workflow results
+    /// </summary>
+    private void ShowWorkflowResults(SwarmResult result)
+    {
+        _logger.LogInformation($"   ⏱️  Execution Time: {result.ExecutionTime.TotalSeconds:F1}s");
+        _logger.LogInformation($"   🤖 Agents Involved: {result.AgentResponses.Count}");
+        _logger.LogInformation($"   💬 Communications: {result.Communications.Count}");
+        
+        // Show individual agent results
+        foreach (var response in result.AgentResponses)
+        {
+            var emoji = GetAgentEmoji(response.Role);
+            _logger.LogInformation($"   {emoji} {response.Role}: {response.Confidence:P} confidence");
+            
+            if (response.ValidationErrors.Any())
+            {
+                _logger.LogWarning($"      ⚠️  Validation issues: {response.ValidationErrors.Count}");
+            }
+        }
+        
+        _logger.LogInformation($"   📝 Summary: {TruncateString(result.FinalAnswer, 150)}");
+    }
+
+    /// <summary>
+    /// Shows agent coordination insights
+    /// </summary>
+    private void ShowAgentCoordinationInsights(SwarmResult result)
+    {
+        _logger.LogInformation("\n🔗 Agent Coordination Insights:");
+        
+        // Analyze communication patterns
+        var communicationsByAgent = result.Communications
+            .GroupBy(c => c.FromAgentId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        foreach (var kvp in communicationsByAgent)
+        {
+            _logger.LogInformation($"   📤 Agent {kvp.Key}: sent {kvp.Value} messages");
+        }
+
+        // Show collaboration effectiveness
+        var avgConfidence = result.AgentResponses.Average(r => r.Confidence);
+        _logger.LogInformation($"   🎯 Average Agent Confidence: {avgConfidence:P}");
+        
+        // Identify high-performing agent combinations
+        var highConfidenceAgents = result.AgentResponses
+            .Where(r => r.Confidence > 0.8)
+            .Select(r => r.Role)
+            .ToList();
+            
+        if (highConfidenceAgents.Any())
+        {
+            _logger.LogInformation($"   ⭐ High-confidence agents: {string.Join(", ", highConfidenceAgents)}");
+        }
+    }
+
+    /// <summary>
+    /// Shows security-specific insights
+    /// </summary>
+    private void ShowSecurityInsights(SwarmResult result)
+    {
+        _logger.LogInformation("\n🔐 Security Analysis Insights:");
+        
+        var riskAssessment = result.AgentResponses
+            .FirstOrDefault(r => r.Role == AgentRole.RiskAssessment);
+            
+        if (riskAssessment != null)
+        {
+            _logger.LogInformation($"   🛡️  Risk Assessment Confidence: {riskAssessment.Confidence:P}");
+            _logger.LogInformation($"   📋 Risk Findings: {TruncateString(riskAssessment.Content, 200)}");
+        }
+
+        var integrationAnalysis = result.AgentResponses
+            .FirstOrDefault(r => r.Role == AgentRole.IntegrationAnalyzer);
+            
+        if (integrationAnalysis != null)
+        {
+            _logger.LogInformation($"   🔌 Integration Impact: {integrationAnalysis.Confidence:P} confidence");
+        }
+
+        // Check for security-related metadata
+        if (result.Metrics.ContainsKey("security_score"))
+        {
+            _logger.LogInformation($"   📊 Security Score: {result.Metrics["security_score"]}");
+        }
+    }
+
+    /// <summary>
+    /// Gets emoji representation for agent roles
+    /// </summary>
+    private string GetAgentEmoji(AgentRole role) => role switch
+    {
+        AgentRole.Orchestrator => "🎭",
+        AgentRole.PRExtractor => "📥",
+        AgentRole.JiraContext => "📋",
+        AgentRole.CodeAnalyzer => "🔍",
+        AgentRole.RequirementMapper => "🗺️",
+        AgentRole.TestCoverage => "🧪",
+        AgentRole.RiskAssessment => "⚠️",
+        AgentRole.IntegrationAnalyzer => "🔌",
+        AgentRole.SummaryGenerator => "📄",
+        AgentRole.Learning => "🧠",
+        _ => "🤖"
+    };
+
+    /// <summary>
+    /// Truncates string for display purposes
+    /// </summary>
+    private string TruncateString(string input, int maxLength)
+    {
+        if (string.IsNullOrEmpty(input) || input.Length <= maxLength)
+            return input;
+            
+        return input.Substring(0, maxLength) + "...";
+    }
+}
+
+/// <summary>
+/// Demonstrates advanced workflow scenarios
+/// </summary>
+public class AdvancedWorkflowScenarios
+{
+    private readonly ISwarmOrchestrator _orchestrator;
+    private readonly ILogger<AdvancedWorkflowScenarios> _logger;
+
+    public AdvancedWorkflowScenarios(ISwarmOrchestrator orchestrator, ILogger<AdvancedWorkflowScenarios> logger)
+    {
+        _orchestrator = orchestrator;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Demonstrates parallel workflow execution
+    /// </summary>
+    public async Task RunParallelWorkflowAsync()
+    {
+        _logger.LogInformation("🚀 Running Parallel Workflow Example");
+        
+        var tasks = new[]
+        {
+            SamplePRData.CreateBugFixPR(),
+            SamplePRData.CreateNewFeaturePR(),
+            SamplePRData.CreateSecurityPR()
+        };
+
+        _logger.LogInformation($"📋 Processing {tasks.Length} PRs in parallel...");
+
+        var startTime = DateTime.UtcNow;
+        
+        // Execute all tasks in parallel
+        var results = await Task.WhenAll(
+            tasks.Select(task => _orchestrator.ExecuteTaskAsync(task))
+        );
+
+        var totalTime = DateTime.UtcNow - startTime;
+        
+        _logger.LogInformation($"✅ Parallel execution completed in {totalTime.TotalSeconds:F1}s");
+        _logger.LogInformation($"📊 Results: {results.Count(r => r.IsSuccessful)}/{results.Length} successful");
+        
+        for (int i = 0; i < results.Length; i++)
+        {
+            _logger.LogInformation($"   Task {i + 1}: {results[i].OverallConfidence:P} confidence");
+        }
+    }
+
+    /// <summary>
+    /// Demonstrates adaptive workflow based on initial analysis
+    /// </summary>
+    public async Task RunAdaptiveWorkflowAsync()
+    {
+        _logger.LogInformation("🧠 Running Adaptive Workflow Example");
+        
+        // Start with basic analysis
+        var initialTask = new SwarmTask
+        {
+            Description = "Initial PR analysis to determine workflow path",
+            RequiredRoles = new[] { AgentRole.PRExtractor, AgentRole.CodeAnalyzer },
+            Parameters = new Dictionary<string, object>
+            {
+                ["pr_title"] = "Update authentication system",
+                ["files_changed"] = new[] { "src/auth/JwtValidator.cs", "src/auth/UserManager.cs" }
+            }
+        };
+
+        var initialResult = await _orchestrator.ExecuteTaskAsync(initialTask);
+        
+        _logger.LogInformation($"📊 Initial analysis confidence: {initialResult.OverallConfidence:P}");
+
+        // Adapt workflow based on results
+        var nextRoles = new List<AgentRole>();
+        
+        if (initialResult.OverallConfidence < 0.7)
+        {
+            _logger.LogInformation("🔍 Low confidence detected - adding more analysis agents");
+            nextRoles.AddRange(new[] { AgentRole.JiraContext, AgentRole.RequirementMapper });
+        }
+
+        // Check if security-sensitive
+        var codeAnalysis = initialResult.AgentResponses
+            .FirstOrDefault(r => r.Role == AgentRole.CodeAnalyzer);
+            
+        if (codeAnalysis?.Content.Contains("auth", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            _logger.LogInformation("🔒 Security-sensitive code detected - adding security analysis");
+            nextRoles.AddRange(new[] { AgentRole.RiskAssessment, AgentRole.IntegrationAnalyzer });
+        }
+
+        // Always add summary generator
+        nextRoles.Add(AgentRole.SummaryGenerator);
+
+        if (nextRoles.Any())
+        {
+            var adaptiveTask = new SwarmTask
+            {
+                Description = "Adaptive follow-up analysis based on initial results",
+                RequiredRoles = nextRoles.ToArray(),
+                Parameters = initialTask.Parameters
+            };
+
+            var finalResult = await _orchestrator.ExecuteTaskAsync(adaptiveTask);
+            
+            _logger.LogInformation($"✅ Adaptive workflow completed with {finalResult.OverallConfidence:P} confidence");
+            _logger.LogInformation($"🎯 Total agents used: {initialResult.AgentResponses.Count + finalResult.AgentResponses.Count}");
+        }
+    }
+
+    /// <summary>
+    /// Demonstrates continuous learning workflow
+    /// </summary>
+    public async Task RunLearningWorkflowAsync()
+    {
+        _logger.LogInformation("📚 Running Learning Workflow Example");
+        
+        var learningTask = new SwarmTask
+        {
+            Description = "Analyze previous PR review outcomes to improve future analysis",
+            RequiredRoles = new[] { AgentRole.Learning, AgentRole.SummaryGenerator },
+            Parameters = new Dictionary<string, object>
+            {
+                ["historical_data"] = new
+                {
+                    previous_reviews = 150,
+                    accuracy_rate = 0.87,
+                    common_issues = new[] { "insufficient_test_coverage", "security_concerns", "performance_impact" },
+                    improvement_areas = new[] { "requirement_mapping", "integration_analysis" }
+                },
+                ["recent_feedback"] = new
+                {
+                    false_positives = 5,
+                    missed_issues = 3,
+                    reviewer_satisfaction = 4.2
+                }
+            }
+        };
+
+        var result = await _orchestrator.ExecuteTaskAsync(learningTask);
+        
+        _logger.LogInformation("📈 Learning Analysis Results:");
+        _logger.LogInformation($"   🎯 Current accuracy rate: 87%");
+        _logger.LogInformation($"   📊 Improvement potential: {result.OverallConfidence:P}");
+        _logger.LogInformation($"   🔧 Recommended optimizations: {result.FinalAnswer}");
+    }
+}
