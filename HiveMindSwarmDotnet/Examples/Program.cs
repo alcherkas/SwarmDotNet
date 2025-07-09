@@ -1,6 +1,7 @@
 using HiveMindSwarmDotnet.Examples;
 using HiveMindSwarmDotnet.Examples.Workflows;
 using HiveMindSwarmDotnet.Console.Services;
+using HiveMindSwarmDotnet.Console.Choreography;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -85,8 +86,14 @@ public class Program
                 
                 // Add example services
                 services.AddScoped<SwarmUsageExample>();
+                services.AddScoped<ChoreographySwarmExample>();
                 services.AddScoped<CodeReviewWorkflow>();
                 services.AddScoped<AdvancedWorkflowScenarios>();
+                
+                // Add choreography services
+                services.AddScoped<IEventBus, EventBus>();
+                services.AddScoped<IChoreographyCoordinator, ChoreographyCoordinator>();
+                services.AddScoped<IChoreographyConfiguration, ChoreographyConfiguration>();
                 
                 // Configure logging
                 services.AddLogging(builder =>
@@ -113,12 +120,15 @@ public class Program
             case "3" or "advanced":
                 await RunAdvancedExamplesAsync(serviceProvider);
                 break;
-            case "4" or "all":
+            case "4" or "choreography":
+                await RunChoreographyExamplesAsync(serviceProvider);
+                break;
+            case "5" or "all":
                 await RunAllExamplesAsync(serviceProvider);
                 break;
             default:
                 System.Console.WriteLine($"❌ Unknown option: {option}");
-                System.Console.WriteLine("Available options: 1/basic, 2/workflow, 3/advanced, 4/all");
+                System.Console.WriteLine("Available options: 1/basic, 2/workflow, 3/advanced, 4/choreography, 5/all");
                 Environment.Exit(1);
                 break;
         }
@@ -129,12 +139,13 @@ public class Program
         while (true)
         {
             System.Console.WriteLine("\n📋 Available Examples:");
-            System.Console.WriteLine("1. Basic Pull Request Analysis Examples");
-            System.Console.WriteLine("2. Detailed Code Review Workflow");
-            System.Console.WriteLine("3. Advanced Workflow Scenarios");
-            System.Console.WriteLine("4. Run All Examples");
+            System.Console.WriteLine("1. Basic Pull Request Analysis Examples (Orchestration)");
+            System.Console.WriteLine("2. Detailed Code Review Workflow (Orchestration)");
+            System.Console.WriteLine("3. Advanced Workflow Scenarios (Orchestration)");
+            System.Console.WriteLine("4. Choreography Pattern Examples (Decentralized)");
+            System.Console.WriteLine("5. Run All Examples");
             System.Console.WriteLine("0. Exit");
-            System.Console.Write("\nSelect an option (0-4): ");
+            System.Console.Write("\nSelect an option (0-5): ");
 
             var input = System.Console.ReadLine();
             
@@ -152,12 +163,15 @@ public class Program
                         await RunAdvancedExamplesAsync(serviceProvider);
                         break;
                     case "4":
+                        await RunChoreographyExamplesAsync(serviceProvider);
+                        break;
+                    case "5":
                         await RunAllExamplesAsync(serviceProvider);
                         break;
                     case "0":
                         return;
                     default:
-                        System.Console.WriteLine("❌ Invalid option. Please select 0-4.");
+                        System.Console.WriteLine("❌ Invalid option. Please select 0-5.");
                         break;
                 }
             }
@@ -208,6 +222,23 @@ public class Program
         await advanced.RunLearningWorkflowAsync();
     }
 
+    private static async Task RunChoreographyExamplesAsync(IServiceProvider serviceProvider)
+    {
+        System.Console.WriteLine("\n🕺 Running Choreography Pattern Examples");
+        System.Console.WriteLine("========================================");
+
+        var choreographyExample = serviceProvider.GetRequiredService<ChoreographySwarmExample>();
+        
+        System.Console.WriteLine("\n🎭 Choreographed PR Analysis:");
+        await choreographyExample.RunChoreographedPullRequestAnalysisAsync();
+        
+        System.Console.WriteLine("\n📊 Event-Driven Monitoring:");
+        await choreographyExample.RunEventDrivenMonitoringExampleAsync();
+        
+        System.Console.WriteLine("\n📈 Choreography Metrics:");
+        await choreographyExample.ShowChoreographyMetricsAsync();
+    }
+
     private static async Task RunAllExamplesAsync(IServiceProvider serviceProvider)
     {
         System.Console.WriteLine("\n🚀 Running All Examples");
@@ -216,6 +247,7 @@ public class Program
         await RunBasicExamplesAsync(serviceProvider);
         await RunWorkflowExamplesAsync(serviceProvider);
         await RunAdvancedExamplesAsync(serviceProvider);
+        await RunChoreographyExamplesAsync(serviceProvider);
 
         // Also run custom workflow example
         var example = serviceProvider.GetRequiredService<SwarmUsageExample>();
